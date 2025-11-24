@@ -2,35 +2,47 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SaleItem extends Model
 {
-    //
+    use HasFactory;
+
     protected $fillable = [
-        'sale_id',
+        'sale_id', // This should be UUID
+        'product_id',
+        'category_id',
         'product_name',
         'quantity',
-        'quantity_sold',
-        'quantity_left',
-        'profit',
         'price',
-        'expiry_date',
         'total_amount',
+        'quantity_left',
+        'quantity_sold',
+        'profit',
+        'expiry_date'
     ];
 
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
+    // Cast sale_id as string for UUID
+    protected $casts = [
+        'sale_id' => 'string',
+    ];
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
+    // Relationship to Sale
     public function sale()
     {
-        return $this->belongsTo(Sales::class);
+        return $this->belongsTo(Sales::class, 'sale_id');
+    }
+
+    // Relationship to Category
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    // Relationship to Product
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

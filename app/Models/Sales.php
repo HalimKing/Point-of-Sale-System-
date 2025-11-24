@@ -7,9 +7,8 @@ use Illuminate\Support\Str;
 
 class Sales extends Model
 {
-    //
-    protected $keyType = 'string'; // Because UUID is a string
-    public $incrementing = false;  // Disable auto-increment
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = [
         'customer_name',
@@ -29,7 +28,6 @@ class Sales extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            // Automatically generate UUID if not already set
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
@@ -43,6 +41,7 @@ class Sales extends Model
 
     public function saleItems()
     {
-        return $this->hasMany(SaleItem::class);
+        // Explicitly specify the foreign key column name
+        return $this->hasMany(SaleItem::class, 'sale_id');
     }
 }

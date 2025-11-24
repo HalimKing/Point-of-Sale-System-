@@ -176,7 +176,7 @@ export const salesColumns: ColumnDef<SalesRecord>[] = [
       const amount = parseFloat(row.getValue("sellingPrice"))
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "GHS",
       }).format(amount)
       return <div className="text-right">{formatted}</div>
     },
@@ -198,7 +198,7 @@ export const salesColumns: ColumnDef<SalesRecord>[] = [
       const amount = parseFloat(row.getValue("totalAmount"))
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "GHS",
       }).format(amount)
       return <div className="text-right font-bold">{formatted}</div>
     },
@@ -220,7 +220,7 @@ export const salesColumns: ColumnDef<SalesRecord>[] = [
       const profit = parseFloat(row.getValue("profit"))
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "GHS",
       }).format(profit)
       const isPositive = profit >= 0
       const className = `text-right font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`
@@ -489,7 +489,7 @@ const SalesReportPage = ({topProductsData, salesByCategoryData}: SalesReportPage
             <div className="text-2xl font-bold">
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
-                currency: "USD",
+                currency: "GHS",
               }).format(summary.totalSales)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -508,7 +508,7 @@ const SalesReportPage = ({topProductsData, salesByCategoryData}: SalesReportPage
               {summary.totalProfit >= 0 ? '+' : ''}
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
-                currency: "USD",
+                currency: "GHS",
               }).format(summary.totalProfit)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -539,7 +539,7 @@ const SalesReportPage = ({topProductsData, salesByCategoryData}: SalesReportPage
             <div className="text-2xl font-bold">
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
-                currency: "USD",
+                currency: "GHS",
               }).format(summary.totalTransactions > 0 ? summary.totalSales / summary.totalTransactions : 0)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -582,7 +582,7 @@ const SalesReportPage = ({topProductsData, salesByCategoryData}: SalesReportPage
                         <p className="font-bold">
                           {new Intl.NumberFormat("en-US", {
                             style: "currency",
-                            currency: "USD",
+                            currency: "GHS",
                           }).format(product.totalSales)}
                         </p>
                         <p className="text-sm text-muted-foreground">
@@ -615,7 +615,7 @@ const SalesReportPage = ({topProductsData, salesByCategoryData}: SalesReportPage
                           <span className="text-sm text-muted-foreground">
                             {new Intl.NumberFormat("en-US", {
                               style: "currency",
-                              currency: "USD",
+                              currency: "GHS",
                             }).format(category.totalSales)}
                           </span>
                         </div>
