@@ -34,6 +34,8 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    phone: string;
+    role: string;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
@@ -47,4 +49,30 @@ export interface FlashMessages {
     success?: string;
     error?: string;
     data?: any;
+}
+
+// types/index.ts
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  sku: string;
+  price: number;
+  category: string;
+}
+
+export interface Batch {
+  id: string;
+  product_id: string;
+  batch_number: string;
+  expiry_date: string;
+  quantity: number;
+  purchase_price: number;
+  manufacturer: string;
+  date_received: string;
+}
+
+export interface ProductWithBatches extends Product {
+  batches: Batch[];
+  totalStock: number;
 }

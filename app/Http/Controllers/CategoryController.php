@@ -18,14 +18,7 @@ class CategoryController extends Controller
         $categorie= Category::withCount('products')->get();
         // $categoriesData = Category::all();
         // dd($categoriesData);
-        $categoriesData = $categorie->map(function($category){
-            return [
-                'id' => $category->id,
-                'name' => $category->name,
-                'description' => $category->description,
-                'productCount' => $category->products_count
-            ];
-        });
+        $categoriesData = $this->allCategories();
         return Inertia::render('categories/index', compact('categoriesData'));
     }
 
@@ -113,7 +106,7 @@ class CategoryController extends Controller
     public function fetchCategories()
     {
         try {
-            $categories = Category::all();
+            $categories = $this->allCategories();
             
             // Debug on backend
             Log::info('Fetching categories', [
@@ -149,6 +142,22 @@ class CategoryController extends Controller
         });
 
         return response()->json($categoriesData);
+    }
+
+    private function allCategories ()
+    {
+        $categorie= Category::withCount('products')->get();
+        // $categoriesData = Category::all();
+        // dd($categoriesData);
+        $categoriesData = $categorie->map(function($category){
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'description' => $category->description,
+                'productCount' => $category->products_count
+            ];
+        });
+        return $categoriesData;
     }
 
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ImportProductController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\SalesController;
@@ -23,6 +24,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route::get('dashboard', function () {
     //     return Inertia::render('dashboard');
     // })->name('dashboard');
+
+    // imports routes
+    Route::post('imports/products/upload', [ImportProductController::class, 'import'])->name('imports.products.upload');
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/dashboard/data', [DashboardController::class, 'getDashboardData']);

@@ -15,7 +15,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Filter, X, Plus, TrendingUp, ShoppingCart } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Filter, X, Plus, TrendingUp, ShoppingCart, Download, Upload } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -64,6 +64,7 @@ import axios from "axios"
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Swal from "sweetalert2"
+import * as XLSX from 'xlsx';
 
 // ... (Product Type and frameworkOptions are unchanged)
 export type Product = {
@@ -86,7 +87,6 @@ export type Product = {
   supplier_id: number // Assuming an ID exists for the Combobox
   
 }
-
 
 interface FormData {
   name: string,
@@ -455,7 +455,6 @@ className="ml-2 h-4 w-4" />
   },
 ]
 
-
 const ProducIndexPage = ({ productData }: { productData: Product[] }) => {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -467,6 +466,12 @@ const ProducIndexPage = ({ productData }: { productData: Product[] }) => {
   const [isViewProductOpen, setIsViewProductOpen] = React.useState(false)
   const [isEditProductOpen, setIsEditProductOpen] = React.useState(false)
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null)
+  
+  // **NEW STATES FOR EXCEL UPLOAD**
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = React.useState(false)
+  const [uploadFile, setUploadFile] = React.useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = React.useState(0)
+  const [isUploading, setIsUploading] = React.useState(false)
   
   const [products, setProducts] = React.useState<Product[]>(productData)
   const [imagePreview, setImagePreview] = React.useState<string | null>(null)
@@ -708,6 +713,204 @@ const ProducIndexPage = ({ productData }: { productData: Product[] }) => {
     }
   }
 
+
+  // **NEW: Download CSV Template**
+const downloadCSVTemplate = () => {
+  const templateData = [
+    ['Product Name', 'Category Name', 'Supplier Email', 'Selling Price', 'Cost Price', 'Total Quantity', 'Reorder Level', 'Expiry Date'],
+    ['Example Product', 'Antacid', 'example@mail.com', '100.00', '80.00', '50', '10', '2024-12-31']
+  ];
+
+  const csvContent = templateData.map(row => row.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'product_import_template.csv');
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  toast.success('CSV template downloaded successfully!');
+};
+
+// **NEW: Handle CSV file upload**
+const handleCSVUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  
+  if (!uploadFile) {
+    toast.error('Please select a file to upload');
+    return;
+  }
+
+  // Validate file type
+  if (!uploadFile.name.endsWith('.csv')) {
+    toast.error('Please upload a valid CSV file');
+    return;
+  }
+
+  setIsUploading(true);
+  setUploadProgress(0);
+
+  try {
+    const formData = new FormData();
+    formData.append('csv_file', uploadFile);
+
+    const response = await axios.post('/imports/products/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          const progress = (progressEvent.loaded / progressEvent.total) * 100;
+          setUploadProgress(Math.round(progress));
+        }
+      },
+    });
+
+    if (response.status === 200) {
+      console.log(response.data);
+      
+      toast.success('Products imported successfully!');
+      setIsUploadDialogOpen(false);
+      setUploadFile(null);
+      setUploadProgress(0);
+      
+      // Refresh products list
+      fetchAllProducts();
+    }
+  } catch (error: any) {
+    console.error('Error uploading file:', error);
+    
+    let errorMessage = 'Failed to import products. Please check the file format.';
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.data?.errors) {
+      const errors = error.response.data.errors;
+      errorMessage = Object.values(errors).flat().join(', ');
+    }
+    
+    toast.error(errorMessage);
+  } finally {
+    setIsUploading(false);
+    setUploadProgress(0);
+  }
+};
+
+// Update the file input to accept CSV only
+{/* <Input
+  id="csvFile"
+  name="csvFile"
+  type="file"
+  accept=".csv"
+  onChange={handleFileSelect}
+  className="hidden"
+/> */}
+
+  // **NEW: Download Excel Template**
+  const downloadExcelTemplate = () => {
+    // Create template data
+    const templateData = [
+      {
+        'Product Name': 'Example Product',
+        'Category Name': 'Antacid',
+        'Supplier Email': 'example@mail.com',
+        'Selling Price': '100.00',
+        'Cost Price': '80.00',
+        'Total Quantity': '50',
+        'Reorder Level': '10',
+        'Expiry Date': '2024-12-31'
+      }
+    ];
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Products Template');
+    
+    // Generate and download file
+    XLSX.writeFile(wb, 'product_import_template.xlsx');
+    
+    toast.success('Template downloaded successfully!');
+  };
+
+  // **NEW: Handle Excel file upload**
+  const handleExcelUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
+    if (!uploadFile) {
+      toast.error('Please select a file to upload');
+      return;
+    }
+
+    // Validate file type
+    if (!uploadFile.name.endsWith('.xlsx') && !uploadFile.name.endsWith('.xls')) {
+      toast.error('Please upload a valid Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const formData = new FormData();
+      formData.append('excel_file', uploadFile);
+
+      const response = await axios.post('/imports/products/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const progress = (progressEvent.loaded / progressEvent.total) * 100;
+            setUploadProgress(Math.round(progress));
+          }
+        },
+      });
+
+      if (response.status === 200) {
+        console.log(response.data);
+        
+        toast.success('Products imported successfully!');
+        setIsUploadDialogOpen(false);
+        setUploadFile(null);
+        setUploadProgress(0);
+        
+        // Refresh products list
+        fetchAllProducts();
+      }
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      
+      let errorMessage = 'Failed to import products. Please check the file format.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        // Handle validation errors from backend
+        const errors = error.response.data.errors;
+        errorMessage = Object.values(errors).flat().join(', ');
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // **NEW: Handle file selection**
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+    }
+  };
+
   // **NEW: Columns using the new handlers**
   const columns = React.useMemo(() => 
     createColumns(handleViewProduct, handleEditProduct, handleDeleteProduct), 
@@ -905,9 +1108,6 @@ filter.value.length > 0 : filter.value !== "")
     }
   }
 
-
-
-
   // Calculate totals for summary
   const totals = React.useMemo(() => {
     return products.reduce((acc, product) => {
@@ -930,6 +1130,26 @@ filter.value.length > 0 : filter.value !== "")
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Download Template Button */}
+          <Button
+            variant="outline"
+            onClick={downloadCSVTemplate}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Template
+          </Button>
+
+          {/* Import Products Button */}
+          <Button
+            variant="outline"
+            onClick={() => setIsUploadDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            Import
+          </Button>
+
           {/* Delete Selected Button */}
           {table.getFilteredSelectedRowModel().rows.length > 0 && (
             <Button
@@ -1290,7 +1510,6 @@ filter.value.length > 0 : filter.value !== "")
   </DialogContent>
 </Dialog>
 
-
        {/* **NEW: Edit Product Dialog** */}
       <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
   <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col p-0">
@@ -1606,6 +1825,105 @@ filter.value.length > 0 : filter.value !== "")
     </DialogFooter>
   </DialogContent>
 </Dialog>
+
+      {/* **NEW: Excel Upload Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Import Products from Excel</DialogTitle>
+            <DialogDescription>
+              Upload an Excel file to import multiple products at once. 
+              <Button 
+                variant="link" 
+                className="p-0 h-auto ml-1 text-blue-600" 
+                onClick={downloadExcelTemplate}
+              >
+                Download template
+              </Button>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleCSVUpload} className="space-y-6">
+            <div className="space-y-4">
+              {/* File Upload Area */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                <Input
+                  id="excelFile"
+                  name="excelFile"
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <Label 
+                  htmlFor="excelFile" 
+                  className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+                >
+                  <Upload className="h-8 w-8 text-gray-400" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {uploadFile ? uploadFile.name : 'Choose Excel file'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Supports .xlsx, .xls files (max 10MB)
+                    </p>
+                  </div>
+                </Label>
+              </div>
+
+              {/* Progress Bar */}
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Uploading...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Instructions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-900 mb-2">File Requirements:</h4>
+                <ul className="text-xs text-blue-800 space-y-1">
+                  <li>• Use the provided template format</li>
+                  <li>• Category Name and Supplier Email must be valid existing</li>
+                  <li>• Dates should be in YYYY-MM-DD format</li>
+                  <li>• Prices should be numbers with up to 2 decimal places</li>
+                  <li>• First row should contain column headers</li>
+                </ul>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsUploadDialogOpen(false);
+                  setUploadFile(null);
+                  setUploadProgress(0);
+                }}
+                disabled={isUploading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={!uploadFile || isUploading}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isUploading ? 'Importing...' : 'Import Products'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Financial Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -1957,4 +2275,3 @@ export default function Products({ products }: { products: Product[] }) {
         </AppLayout>
     );
 }
-// [file content end]

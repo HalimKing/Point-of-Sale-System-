@@ -47,12 +47,6 @@ const mainNavItems: NavItem[] = [
         icon: DollarSign,
     },
     // expenses
-    {
-        title: 'Expenses',
-        href: '/expenses',
-        // change the icon
-        icon: BadgeDollarSignIcon,
-    },
     // suppliers
     {
         title: 'Suppliers',
@@ -100,7 +94,7 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
+                {/* <NavFooter items={footerNavItems} className="mt-auto" /> */}
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

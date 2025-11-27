@@ -299,7 +299,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
   const handleDeleteCategory = async (category: Category) => {
     const result = await Swal.fire({
       title: 'Are you sure?',
-      text: `You are about to delete the category "${category.name}". This action cannot be undone.`,
+      text: `You are about to delete the category "${category.name}" with it related products. This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -316,7 +316,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
     if (result.isConfirmed) {
       setDeleting(true);
       try {
-        await router.delete(`/categories/${category.id}`);
+        router.delete(`/categories/${category.id}`);
         
         // Refresh categories data after successful deletion
         await fetchCategories();

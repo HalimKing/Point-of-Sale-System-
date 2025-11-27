@@ -126,7 +126,7 @@ const POSDashboard: React.FC = () => {
   };
 
   // Download chart data as CSV
-  const downloadChartDataAsCSV = (data: any[], filename: string, chartName: string) => {
+  const downloadChartDataAsCSV = (data: any[] | undefined, filename: string, chartName: string) => {
     try {
       setDownloading(`${chartName}-csv`);
       
@@ -134,7 +134,7 @@ const POSDashboard: React.FC = () => {
         alert('No data available to download');
         return;
       }
-
+  
       const headers = Object.keys(data[0]).join(',');
       const rows = data.map(item => 
         Object.values(item).map(value => 

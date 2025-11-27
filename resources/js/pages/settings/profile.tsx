@@ -21,6 +21,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+
+
+
 export default function Profile({
     mustVerifyEmail,
     status,
@@ -29,7 +32,6 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<SharedData>().props;
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
@@ -89,6 +91,7 @@ export default function Profile({
                                     />
                                 </div>
 
+                               
                                 {mustVerifyEmail &&
                                     auth.user.email_verified_at === null && (
                                         <div>
@@ -141,7 +144,7 @@ export default function Profile({
                     </Form>
                 </div>
 
-                <DeleteUser />
+                {/* <DeleteUser /> */}
             </SettingsLayout>
         </AppLayout>
     );
