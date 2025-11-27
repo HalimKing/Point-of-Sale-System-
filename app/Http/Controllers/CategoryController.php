@@ -99,6 +99,13 @@ class CategoryController extends Controller
         return false;
     }
 
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        Category::whereIn('id', $ids)->delete();
+        return response()->json(['message' => 'Categories deleted successfully.']);
+    }
+
 
     /**
      * Fetch categories data as JSON.

@@ -53,6 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('users/{id}/reset-password', [UserController::class, 'resetPassword']);
     Route::resource('users', UserController::class);
 
+    // bulk delete
+    Route::post('/bulk-delete/categories', [CategoryController::class, 'bulkDelete']);
+
     Route::get('api/sales/sales-details', [SalesDetailsController::class, 'salesDetails']);
 });
 

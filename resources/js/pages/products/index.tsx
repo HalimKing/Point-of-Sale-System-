@@ -606,112 +606,7 @@ const ProducIndexPage = ({ productData }: { productData: Product[] }) => {
     }
   }
 
-  // **NEW: Handler to delete multiple selected products**
-  const handleDeleteSelected = async () => {
-    const selectedRows = table.getFilteredSelectedRowModel().rows;
-    
-    if (selectedRows.length === 0) {
-      toast.info('Please select at least one product to delete.');
-      return;
-    }
 
-    const selectedProducts = selectedRows.map(row => row.original);
-    const productNames = selectedProducts.map(p => p.name).join(', ');
-
-    const result = await Swal.fire({
-      title: 'Delete Multiple Products?',
-      html: `
-        <div class="text-left">
-          <p>You are about to delete <strong>${selectedRows.length}</strong> product(s):</p>
-          <ul class="mt-2 text-sm max-h-32 overflow-y-auto">
-            ${selectedProducts.map(p => `<li class="py-1 border-b">• ${p.name}</li>`).join('')}
-          </ul>
-          <p class="mt-3 text-red-600 font-semibold">This action cannot be undone!</p>
-        </div>
-      `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: `Yes, delete ${selectedRows.length} product(s)`,
-      cancelButtonText: 'Cancel',
-      reverseButtons: true,
-      background: '#fff',
-      iconColor: '#ef4444',
-      width: '500px',
-    });
-
-    if (result.isConfirmed) {
-      try {
-        // Delete products one by one (you might want to implement bulk delete in your backend)
-        const deletePromises = selectedProducts.map(product => 
-          axios.delete(`/products/${product.id}`)
-        );
-
-        const results = await Promise.allSettled(deletePromises);
-        
-        // Check which deletions were successful
-        const successfulDeletes: string[] = [];
-        const failedDeletes: string[] = [];
-
-        results.forEach((result, index) => {
-          if (result.status === 'fulfilled') {
-            successfulDeletes.push(selectedProducts[index].id);
-          } else {
-            failedDeletes.push(selectedProducts[index].name);
-          }
-        });
-
-        // Update local state for successful deletions
-        if (successfulDeletes.length > 0) {
-          setProducts(prev => prev.filter(p => !successfulDeletes.includes(p.id)));
-        }
-
-        // Clear selection
-        table.toggleAllPageRowsSelected(false);
-
-        // Show appropriate messages
-        if (successfulDeletes.length > 0) {
-          toast.success(`Successfully deleted ${successfulDeletes.length} product(s)!`);
-        }
-
-        if (failedDeletes.length > 0) {
-          toast.error(`Failed to delete: ${failedDeletes.join(', ')}`);
-        }
-
-        // Show summary
-        Swal.fire({
-          title: 'Deletion Complete',
-          html: `
-            <div class="text-left">
-              <p class="text-green-600">✓ Successfully deleted: <strong>${successfulDeletes.length}</strong> product(s)</p>
-              ${failedDeletes.length > 0 ? 
-                `<p class="text-red-600 mt-2">✗ Failed to delete: <strong>${failedDeletes.length}</strong> product(s)</p>` : 
-                ''
-              }
-            </div>
-          `,
-          icon: successfulDeletes.length > 0 ? 'success' : 'error',
-          confirmButtonColor: '#3085d6',
-          background: '#fff',
-          iconColor: successfulDeletes.length > 0 ? '#10b981' : '#ef4444',
-        });
-
-      } catch (error: any) {
-        console.error('Error deleting products:', error);
-        toast.error('An error occurred while deleting products.');
-        
-        Swal.fire({
-          title: 'Error!',
-          text: 'Failed to delete selected products. Please try again.',
-          icon: 'error',
-          confirmButtonColor: '#3085d6',
-          background: '#fff',
-          iconColor: '#ef4444',
-        });
-      }
-    }
-  }
 
 
   // **NEW: Download CSV Template**
@@ -1151,15 +1046,7 @@ filter.value.length > 0 : filter.value !== "")
           </Button>
 
           {/* Delete Selected Button */}
-          {table.getFilteredSelectedRowModel().rows.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={handleDeleteSelected}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete Selected ({table.getFilteredSelectedRowModel().rows.length})
-            </Button>
-          )}
+         
           
           {/* Add Product Dialog */}
           <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>

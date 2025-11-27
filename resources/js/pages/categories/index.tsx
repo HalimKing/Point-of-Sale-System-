@@ -13,7 +13,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Filter, X, Plus, Eye } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Filter, X, Plus, Eye, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -198,6 +198,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
   const [editingCategory, setEditingCategory] = React.useState<Category | null>(null)
   const [viewingCategory, setViewingCategory] = React.useState<Category | null>(null)
   const [deleting, setDeleting] = React.useState(false)
+  const [bulkDeleting, setBulkDeleting] = React.useState(false)
   const {flash} = usePage().props as {flash?: FlashMessages};
  
   const {data, setData, post, processing, errors} = useForm<FormData>({
@@ -238,6 +239,66 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
 
   const clearAllFilters = () => {
     setColumnFilters([])
+  }
+
+  // Get selected rows
+  const getSelectedCategories = (): Category[] => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    return selectedRows.map(row => row.original)
+  }
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    const selectedCategories = getSelectedCategories()
+    
+    if (selectedCategories.length === 0) {
+      toast.warning('Please select at least one category to delete.')
+      return
+    }
+
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      html: `You are about to delete <strong>${selectedCategories.length}</strong> categor${selectedCategories.length === 1 ? 'y' : 'ies'}. This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: `Yes, delete ${selectedCategories.length} categor${selectedCategories.length === 1 ? 'y' : 'ies'}!`,
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+      customClass: {
+        confirmButton: 'swal2-confirm',
+        cancelButton: 'swal2-cancel'
+      }
+    });
+
+    if (result.isConfirmed) {
+      setBulkDeleting(true);
+      try {
+        const categoryIds = selectedCategories.map(category => category.id)
+        
+        // Send bulk delete request
+        const response = await axios.post('/bulk-delete/categories', {
+          ids: categoryIds
+        });
+
+        console.log(response.data);
+        
+        
+        // Refresh categories data after successful deletion
+        await fetchCategories();
+        
+        // Clear selection
+        table.toggleAllPageRowsSelected(false);
+        
+        toast.success(`Successfully deleted ${selectedCategories.length} categor${selectedCategories.length === 1 ? 'y' : 'ies'}.`);
+      } catch (error) {
+        console.error('Error bulk deleting categories:', error);
+        toast.error('Failed to delete categories');
+      } finally {
+        setBulkDeleting(false);
+      }
+    }
   }
 
   // handle messages after add/edit/delete
@@ -695,7 +756,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -718,18 +779,32 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
             </div>
           </div>
         </div>
-        <div className="rounded-lg border p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Active Categories</p>
-              <p className="text-2xl font-bold">{summary.activeCategories}</p>
-            </div>
-            <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-green-600 text-sm font-bold">A</span>
-            </div>
-          </div>
-        </div>
+        
       </div>
+
+      {/* Bulk Actions Bar - Only show when rows are selected */}
+      {table.getFilteredSelectedRowModel().rows.length > 0 && (
+        <div className="flex items-center justify-between p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <Badge variant="secondary" className="px-3 py-1 bg-blue-100 text-blue-800 border-blue-200">
+              {table.getFilteredSelectedRowModel().rows.length} categor{table.getFilteredSelectedRowModel().rows.length === 1 ? 'y' : 'ies'} selected
+            </Badge>
+            <span className="text-sm text-blue-700">
+              Select all {table.getFilteredRowModel().rows.length} rows
+            </span>
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleBulkDelete}
+            disabled={bulkDeleting}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {bulkDeleting ? 'Deleting...' : `Delete Selected (${table.getFilteredSelectedRowModel().rows.length})`}
+          </Button>
+        </div>
+      )}
 
       {/* Filters Section */}
       <div className="space-y-4 py-4">
@@ -881,7 +956,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
       </div>
 
       {/* Pagination and Selection Info */}
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-between space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
