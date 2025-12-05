@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BadgeDollarSignIcon, BookOpen, DollarSign, Folder, LayoutGrid, ShoppingCart, Users } from 'lucide-react';
+import { BadgeDollarSignIcon, BookOpen, DollarSign, Folder, LayoutGrid, Settings, ShoppingCart, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -59,6 +59,12 @@ const mainNavItems: NavItem[] = [
         href: '/users',
         icon: Users,
     },
+    // settings
+    {
+        title: 'Settings',
+        href: '/settings/index',
+        icon: Settings,
+    }
 ];
 const footerNavItems: NavItem[] = [
     {

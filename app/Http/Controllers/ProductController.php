@@ -125,15 +125,15 @@ class ProductController extends Controller
         $product->name = $request->name;
         $product->category_id = $request->category;
         $product->supplier_id = $request->supplier;
-        $product->total_quantity = $request->totalQuantity;
         $product->selling_price = $request->sellingPrice;
         $product->cost_price = $request->costPrice;
         $product->expiry_date = $request->expiryDate;
         $product->profit = $request->sellingPrice - $request->costPrice;
+        $product->quantity_left = $product->quantity_left + ($request->totalQuantity - $product->total_quantity);
+        $product->total_quantity = $request->totalQuantity;
         $product->total_profit = $product->profit * $product->total_quantity;
-        $product->quantity_left = $product->total_quantity;
-        $product->quantity_sold = 0;
         $product->reorder_level = $request->reorderLevel;
+
 
         if ($request->hasFile('image')) {
             // delete image from the storage
@@ -189,7 +189,9 @@ class ProductController extends Controller
                 'id' => $product->id,
                 'name' => $product->name,
                 'category' => $product->category->name,
+                'category_id' => $product->category_id,
                 'supplier' => $product->supplier->name,
+                'supplier_id' => $product->supplier_id,
                 'totalQuantity' => $product->total_quantity,
                 'quantityLeft' => $product->quantity_left,
                 'quantitySold' => $product->quantity_sold,

@@ -28,6 +28,22 @@ interface Product {
   image?: string;
 }
 
+interface CompanySettings {
+  logo?: string;
+  company_name?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  return_policy?: string;
+  thank_you_message?: string;
+}
+
+interface SalesProps {
+  productsData: Product[];
+  companySettings: CompanySettings;
+}
+
 interface CartItem extends Product {
   quantity: number;
 }
@@ -122,7 +138,7 @@ const saveDiscountToStorage = (discount: number) => {
   }
 };
 
-const POSCashierInterface: React.FC<{ productsData: Product[] }> = ({ productsData }) => {
+const POSCashierInterface: React.FC<SalesProps> = ({ productsData, companySettings }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -463,10 +479,10 @@ const POSCashierInterface: React.FC<{ productsData: Product[] }> = ({ productsDa
           <div class="receipt-container">
             <!-- Store Header -->
             <div class="store-info">
-              <h2 style="margin: 0 0 5px 0; font-size: 16px; font-weight: bold;">POINT OF SALES</h2>
-              <p style="margin: 2px 0;">123 Main Street, Accra</p>
-              <p style="margin: 2px 0;">Tel: +233 XX XXX XXXX</p>
-              <p style="margin: 2px 0;">Email: info@yourstore.com</p>
+              <h2 style="margin: 0 0 5px 0; font-size: 16px; font-weight: bold;">${companySettings.company_name}</h2>
+              <p style="margin: 2px 0;">${companySettings.address}</p>
+              <p style="margin: 2px 0;">Tel: ${companySettings.phone}</p>
+              <p style="margin: 2px 0;">Email: ${companySettings.email}</p>
             </div>
 
             <!-- Receipt Title -->
@@ -548,8 +564,9 @@ const POSCashierInterface: React.FC<{ productsData: Product[] }> = ({ productsDa
 
             <!-- Footer -->
             <div class="footer">
-              <p style="margin: 5px 0;">Returns accepted within 7 days with receipt</p>
-              <p style="margin: 5px 0;">Have a nice day!</p>
+            
+             ${companySettings.return_policy?.length !== 0 ? `<p style="margin: 5px 0;">Return Policy: ${companySettings.return_policy}</p>` : ''}
+              ${companySettings.thank_you_message?.length !== 0 ? `<p style="margin: 5px 0;">${companySettings.thank_you_message}</p>` : ''}
             </div>
 
             <!-- Print Buttons (Hidden when printing) -->
@@ -625,11 +642,11 @@ const POSCashierInterface: React.FC<{ productsData: Product[] }> = ({ productsDa
   };
 
   // Add debug info to check what's happening
-  useEffect(() => {
-    console.log('Current cart state:', cart);
-    console.log('Is cart loaded?', isCartLoaded);
-    console.log('Products data available?', allProducts && allProducts.length > 0);
-  }, [cart, isCartLoaded, allProducts]);
+  // useEffect(() => {
+  //   console.log('Current cart state:', cart);
+  //   console.log('Is cart loaded?', isCartLoaded);
+  //   console.log('Products data available?', allProducts && allProducts.length > 0);
+  // }, [cart, isCartLoaded, allProducts]);
 
   return (
     <div className="h-screen bg-gray-100 flex flex-col">
@@ -964,11 +981,11 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function Sales({productsData}: {productsData: Product[]}) {
+export default function Sales({productsData, companySettings}: SalesProps) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="POS System" />
-      <POSCashierInterface productsData={productsData} />
+      <POSCashierInterface productsData={productsData} companySettings={companySettings} />
     </AppLayout>
   );
 }

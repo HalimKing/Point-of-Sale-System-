@@ -68,7 +68,7 @@ export type Supplier = {
   phone: string
   address: string
   contactPerson?: string
-  status: "active" | "inactive" | "pending"
+  status: "active" | "inactive"
   lastOrderDate?: Date
 }
 
@@ -195,7 +195,6 @@ export const supplierColumns: ColumnDef<Supplier>[] = [
         switch (status) {
           case "active": return "text-green-600"
           case "inactive": return "text-red-600"
-          case "pending": return "text-orange-600"
           default: return "text-gray-600"
         }
       }
@@ -549,7 +548,6 @@ const SupplierIndexPage = ({suppliersData}: {suppliersData: Supplier[]}) => {
     switch (status) {
       case "active": return "bg-green-100 text-green-800 border-green-200"
       case "inactive": return "bg-red-100 text-red-800 border-red-200"
-      case "pending": return "bg-orange-100 text-orange-800 border-orange-200"
       default: return "bg-gray-100 text-gray-800 border-gray-200"
     }
   }
@@ -1055,7 +1053,7 @@ const SupplierIndexPage = ({suppliersData}: {suppliersData: Supplier[]}) => {
 
       {/* Rest of your existing JSX remains the same */}
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Suppliers</CardTitle>
@@ -1094,13 +1092,6 @@ const SupplierIndexPage = ({suppliersData}: {suppliersData: Supplier[]}) => {
             </p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <div className="h-4 w-4 text-muted-foreground">📦</div>
-          </CardHeader>
-        </Card>
       </div>
 
       {/* Filters Section */}
@@ -1134,7 +1125,6 @@ const SupplierIndexPage = ({suppliersData}: {suppliersData: Supplier[]}) => {
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
                 </SelectContent>
               </Select>
             </div>

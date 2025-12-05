@@ -1,3 +1,4 @@
+import { Company } from './index.d';
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
@@ -75,4 +76,15 @@ export interface Batch {
 export interface ProductWithBatches extends Product {
   batches: Batch[];
   totalStock: number;
+}
+
+export interface Company {
+  logo?: string;
+  company_name?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  return_policy?: string;
+  thank_you_message?: string;
 }

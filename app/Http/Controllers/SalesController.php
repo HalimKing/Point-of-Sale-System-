@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTransactionRequest;
+use App\Models\CompanySetting;
 use App\Models\Product;
 use App\Models\SaleItem;
 use App\Models\Sales;
@@ -19,7 +20,8 @@ class SalesController extends Controller
     public function index()
     {
         $productsData = $this->allProducts();
-        return Inertia::render('sales/index', compact('productsData'));
+        $companySettings = CompanySetting::first();
+        return Inertia::render('sales/index', compact('productsData', 'companySettings'));
     }
 
     public function saveTransactions(StoreTransactionRequest $request): JsonResponse
@@ -57,6 +59,7 @@ class SalesController extends Controller
             $grandTotal = round($request->subtotal - $request->discount_amount, 2);
 
             $sale = new Sales();
+            $sale->transaction_id = 'TNX-'. uniqid(10, false);
             $sale->user_id = auth()->id() ?? null;
             $sale->sub_total = $request->subtotal;
             $sale->discount_amount = $request->discount_amount;

@@ -15,7 +15,7 @@ class RoleSeeder extends Seeder
     {
         //
         $data = [
-            ['name' => 'supper_admin', 'description' => 'Full system access'],
+            ['name' => 'supper admin', 'description' => 'Full system access'],
             ['name' => 'admin', 'description' => 'Manage operations'],
             ['name' => 'cashier', 'description' => 'Perform sales activities'],
             ['name' => 'inventory', 'description' => 'Manage stock and products'],

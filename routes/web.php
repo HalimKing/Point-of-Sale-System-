@@ -8,6 +8,7 @@ use App\Http\Controllers\RolesController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SalesDetailsController;
 use App\Http\Controllers\SalesReportController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,7 @@ Route::get('/', function () {
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
+    // return Inertia::render('auth/login');
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -55,8 +57,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // bulk delete
     Route::post('/bulk-delete/categories', [CategoryController::class, 'bulkDelete']);
+    
 
     Route::get('api/sales/sales-details', [SalesDetailsController::class, 'salesDetails']);
+    Route::get('api/sales/transactions', [SalesDetailsController::class, 'transactions']);
+    Route::get('api/sales/transactions/{id}/sale-items', [SalesDetailsController::class, 'saleItems']);
+    Route::get('api/sales/transactions/{id}/details', [SalesDetailsController::class, 'transactionDetails']);
+
+    Route::get('settings/index', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('settings/update', [SettingsController::class, 'update']);
 });
 
 require __DIR__.'/settings.php';

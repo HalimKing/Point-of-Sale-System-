@@ -19,13 +19,30 @@ export default function AuthSplitLayout({
     return (
         <div className="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
             <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-                <div className="absolute inset-0 bg-zinc-900" />
+                {/* Background Image */}
+                <div className="absolute inset-0">
+                    <img 
+                        src="images/side.jpg"
+                        // src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=2072&auto=format&fit=crop"
+                        alt="Authentication background"
+                        className="h-full w-full object-cover"
+                    />
+                </div>
+                
+                {/* Overlay gradient for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-blue-900 via-blue-900/80 to-blue-900/60" />
+                
                 <Link
                     href={home()}
                     className="relative z-20 flex items-center text-lg font-medium"
                 >
-                    <AppLogoIcon className="mr-2 size-8 fill-current text-white" />
-                    {name}
+                    <div className='w-12'>
+                        <AppLogoIcon className="mr-2 size-8 fill-current w-12 h-12 text-white" />
+                    </div>
+                    <span className='pl-3'>
+                        {name}
+                        
+                    </span>
                 </Link>
                 {quote && (
                     <div className="relative z-20 mt-auto">

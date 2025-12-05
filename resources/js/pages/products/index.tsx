@@ -1565,11 +1565,9 @@ filter.value.length > 0 : filter.value !== "")
                 name="totalQuantity"
                 type="number"
                 placeholder="100"
-                className="bg-gray-50"
                 min="0"
                 value={editData.totalQuantity}
                 onChange={(e) => setEditData('totalQuantity', parseInt(e.target.value))}
-                disabled={true}
               />
               <p className="text-xs text-gray-500 italic">
                 Managed via stock transactions

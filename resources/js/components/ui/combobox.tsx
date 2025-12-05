@@ -54,6 +54,8 @@ export function Combobox({
     setOpen(false)
   }
 
+  
+
   const selectedOption = options.find((option) => option.value === value)
 
   return (

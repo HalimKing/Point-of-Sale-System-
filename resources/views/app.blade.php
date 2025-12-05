@@ -30,10 +30,10 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'POS') }}</title>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" href="{{ optional(session('company_info'))->logo ? asset('storage/' . optional(session('company_info'))->logo) : asset('favicon.png') }}" sizes="any">
+        <!-- <link rel="icon" href="/favicon.svg" type="image/svg+xml"> -->
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
