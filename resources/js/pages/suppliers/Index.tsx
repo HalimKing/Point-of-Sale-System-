@@ -391,7 +391,7 @@ const SupplierIndexPage = ({suppliersData}: {suppliersData: Supplier[]}) => {
   const handleAddSupplier = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     
-    post('/suppliers', {
+    post('/admin/suppliers', {
       onSuccess: () => {
         setIsAddSupplierOpen(false)
         fetchSuppliers()
@@ -407,7 +407,7 @@ const SupplierIndexPage = ({suppliersData}: {suppliersData: Supplier[]}) => {
     event.preventDefault()
     if (!editingSupplier) return
 
-    put(`/suppliers/${editingSupplier.id}`, {
+    put(`/admin/suppliers/${editingSupplier.id}`, {
       onSuccess: () => {
         fetchSuppliers()
         setIsEditSupplierOpen(false)
@@ -528,7 +528,7 @@ const SupplierIndexPage = ({suppliersData}: {suppliersData: Supplier[]}) => {
 
   const fetchSuppliers = async () => {
     try {
-      const response = await axios.get('/suppliers/fetch-suppliers');
+      const response = await axios.get('/admin/suppliers/fetch-suppliers');
       const allSuppliers = response.data;
       
       

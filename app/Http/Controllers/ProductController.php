@@ -42,7 +42,7 @@ class ProductController extends Controller
             'costPrice' => 'required|numeric|min:1|max:10000000.00',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'expiryDate' => 'required|date',
-            'reorderLevel' => 'required|integer|min:1|max:100',
+            'reorderLevel' => 'required|integer|min:1|max:10000',
         ]);
 
         // Upload image
@@ -74,7 +74,7 @@ class ProductController extends Controller
 
             $product->save();
 
-            return redirect()->route('products.index')
+            return redirect()->route('admin.products.index')
             ->with('success', 'Product created Successfully!');
        }catch(\Exception $e){
             Log::error($e->getMessage());
@@ -83,7 +83,7 @@ class ProductController extends Controller
             if ($request->hasFile('image')) {
                 unlink(public_path('images/' . $request->image));
             }
-            return redirect()->route('products.index')
+            return redirect()->route('admin.products.index')
             ->with('error', 'Something went wrong!');
        }
     }
@@ -148,7 +148,7 @@ class ProductController extends Controller
 
         $product->save();
 
-        return redirect()->route('products.index')
+        return redirect()->route('admin.products.index')
         ->with('success', 'Product updated Successfully!');
     }
 

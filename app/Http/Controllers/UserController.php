@@ -34,12 +34,13 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         //
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string',
-            'role' => 'required|string|in:supper admin,admin,cachier,inventory',
+            'role' => 'required|string|in:supper admin,admin,cashier,inventory',
             'status' => 'required|string|in:active,inactive',
         ]);
         try {
@@ -56,10 +57,10 @@ class UserController extends Controller
             $user->password = bcrypt('password'); // default password
             $user->role_id = $isRole->id; // default role as 'User'
             $user->save();
-            return redirect()->route('users.index')->with('success', 'User created successfully.');
+            return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
 
         } catch (Exception $e) {
-            return redirect()->route('users.index')->with('error', 'Sorry, something went wrong');
+            return redirect()->route('admin.users.index')->with('error', 'Sorry, something went wrong');
         }
         
     }
@@ -95,7 +96,7 @@ class UserController extends Controller
         try {
             $isRole = Role::where('name', $request->role)->first();
             if (empty($isRole)) {
-                return redirect()->route('users.index')->with('error', 'This role is not in the role list.');
+                return redirect()->route('admin.users.index')->with('error', 'This role is not in the role list.');
             }
 
             $user = User::find($id);
@@ -104,10 +105,10 @@ class UserController extends Controller
             $user->phone = $request->phone;
             $user->role_id = $isRole->id; // default role as 'User'
             $user->save();
-            return redirect()->route('users.index')->with('success', 'User updated successfully.');
+            return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
 
         } catch (Exception $e) {
-            return redirect()->route('users.index')->with('error', 'Sorry, something went wrong');
+            return redirect()->route('admin.users.index')->with('error', 'Sorry, something went wrong');
         }
     }
 
@@ -158,7 +159,6 @@ class UserController extends Controller
                 'email' => $user->email,
                 'status' => $user->status,
                 'createdAt' => Carbon::parse($user->created_at)->format('Y-m-d'),
-                'role' => $user->role->name,
                 'phone' => $user->phone,
             ];
         });
@@ -183,9 +183,9 @@ class UserController extends Controller
         try {
             $user->password = bcrypt($request->newPassword);
             $user->save();
-            return redirect()->route('users.index')->with('success', 'Password reset successfully.');
+            return redirect()->route('admin.users.index')->with('success', 'Password reset successfully.');
         } catch (Exception $e) {
-            return redirect()->route('users.index')->with('error', 'Sorry, something went wrong');
+            return redirect()->route('admin.users.index')->with('error', 'Sorry, something went wrong');
         }
     }
     

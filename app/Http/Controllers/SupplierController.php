@@ -28,7 +28,7 @@ class SupplierController extends Controller
         $supplier = Supplier::find($id);
         $supplier->status = $supplier->status == 'active' ? 'inactive' : 'active';
         $supplier->save();
-        return redirect()->route('suppliers.index')
+        return redirect()->route('admin.suppliers.index')
         ->with('success', 'Supplier status updated Successfully!');
     }
 
@@ -55,7 +55,7 @@ class SupplierController extends Controller
         $supplier->phone = $request->phone;
         $supplier->status = $request->status;
         $supplier->save();
-        return redirect()->route('suppliers.index')
+        return redirect()->route('admin.suppliers.index')
         ->with('success', 'Supplier created Successfully!');
     }
 
@@ -99,7 +99,7 @@ class SupplierController extends Controller
         $supplier->phone = $request->phone;
         $supplier->status = $request->status;
         $supplier->save();
-        return redirect()->route('suppliers.index')
+        return redirect()->route('admin.suppliers.index')
         ->with('success', 'Supplier updated Successfully!');
     }
 
@@ -111,7 +111,7 @@ class SupplierController extends Controller
         //
         $supplier = Supplier::find($id);
         $supplier->delete();
-        return redirect()->route('suppliers.index')
+        return redirect()->route('admin.suppliers.index')
         ->with('success', 'Supplier deleted Successfully!');
     }
 

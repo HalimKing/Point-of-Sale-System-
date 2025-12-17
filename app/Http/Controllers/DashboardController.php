@@ -254,7 +254,7 @@ class DashboardController extends Controller
 
         return $recentTransactions->map(function ($sale) {
             return [
-                'id' => '#TXN-' . substr($sale->id, 0, 8),
+                'id' => '#' . $sale->transaction_id,
                 'time' => $sale->created_at->format('M d, g:i A'),
                 'items' => $sale->saleItems->sum('quantity'),
                 'amount' => (float) $sale->grand_total,

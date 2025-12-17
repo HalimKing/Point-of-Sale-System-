@@ -4,9 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { Textarea } from '@/components/ui/textarea';
 import { BreadcrumbItem } from '@/types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface CompanyInfo {
   companyName: string;
@@ -72,252 +77,287 @@ const POSManagement: React.FC<CompanyInfo> = (companySettings) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    post('/settings/update', {
+    post('/admin/settings/update', {
       forceFormData: true, // This ensures proper file upload handling
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background p-6">
       {/* Success Message */}
       {recentlySuccessful && (
-        <div className="max-w-7xl mx-auto px-6 mt-6">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-green-600" />
-            <p className="text-green-800 font-medium">Company information updated successfully!</p>
-          </div>
+        <div className="max-w-7xl mx-auto mb-6">
+          <Alert className="bg-green-50 border-green-200 text-green-800">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Company information updated successfully!
+            </AlertDescription>
+          </Alert>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight">Company Settings</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your company information and receipt settings
+          </p>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Logo Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Company Logo</h2>
-            <div className="flex items-center gap-6">
-              <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                {logoPreview ? (
-                  <img src={logoPreview} alt={logoPreview} className="w-full h-full object-cover" loading="lazy"  />
-                ) : (
-                  <Building2 className="w-16 h-16 text-gray-400" />
-                )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Company Information
+              </CardTitle>
+              <CardDescription>
+                Update your company details and logo
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Logo Section */}
+              <div className="space-y-4">
+                <Label>Company Logo</Label>
+                <div className="flex items-center gap-6">
+                  <Avatar className="h-32 w-32">
+                    <AvatarImage src={logoPreview} alt="Company Logo" />
+                    <AvatarFallback className="bg-muted">
+                      <Building2 className="h-12 w-12" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                      <Label htmlFor="logo-upload">
+                        <Button type="button" variant="outline" asChild>
+                          <span className="cursor-pointer">
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload Logo
+                          </span>
+                        </Button>
+                      </Label>
+                    </div>
+                    {errors.logoFile && (
+                      <p className="text-sm text-destructive">{errors.logoFile}</p>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      PNG, JPG up to 5MB
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="logo-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
-                  <Upload className="w-4 h-4" />
-                  Upload Logo
-                  <input
-                    id="logo-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                    className="hidden"
-                  />
-                </Label>
-                {errors.logoFile && (
-                  <p className="text-sm text-red-600 mt-2">{errors.logoFile}</p>
-                )}
-                <p className="text-sm text-gray-500 mt-2">PNG, JPG up to 5MB</p>
-              </div>
-            </div>
-          </div>
 
-          {/* Basic Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Company Name *</Label>
-                <Input
-                  id="companyName"
-                  name="companyName"
-                  value={data.companyName}
-                  onChange={handleInputChange}
-                  required
-                />
-                {errors.companyName && (
-                  <p className="text-sm text-red-600">{errors.companyName}</p>
-                )}
-              </div>
-            </div>
-          </div>
+              <Separator />
 
-          {/* Contact Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Phone className="w-5 h-5 text-blue-600" />
-              Contact Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="companyName">Company Name *</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    value={data.email}
+                    id="companyName"
+                    name="companyName"
+                    value={data.companyName}
                     onChange={handleInputChange}
-                    className="pl-10"
                     required
                   />
+                  {errors.companyName && (
+                    <p className="text-sm text-destructive">{errors.companyName}</p>
+                  )}
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email}</p>
-                )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    name="phone"
-                    value={data.phone}
-                    onChange={handleInputChange}
-                    className="pl-10"
-                    required
-                  />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="h-5 w-5" />
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address *</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      name="email"
+                      value={data.email}
+                      onChange={handleInputChange}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email}</p>
+                  )}
                 </div>
-                {errors.phone && (
-                  <p className="text-sm text-red-600">{errors.phone}</p>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      name="phone"
+                      value={data.phone}
+                      onChange={handleInputChange}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                  {errors.phone && (
+                    <p className="text-sm text-destructive">{errors.phone}</p>
+                  )}
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="website"
+                      type="text"
+                      name="website"
+                      value={data.website}
+                      onChange={handleInputChange}
+                      className="pl-10"
+                    />
+                  </div>
+                  {errors.website && (
+                    <p className="text-sm text-destructive">{errors.website}</p>
+                  )}
+                </div>
               </div>
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Address Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="address">Street Address *</Label>
                   <Input
-                    id="website"
+                    id="address"
                     type="text"
-                    name="website"
-                    value={data.website}
+                    name="address"
+                    value={data.address}
                     onChange={handleInputChange}
-                    className="pl-10"
+                    required
                   />
+                  {errors.address && (
+                    <p className="text-sm text-destructive">{errors.address}</p>
+                  )}
                 </div>
-                {errors.website && (
-                  <p className="text-sm text-red-600">{errors.website}</p>
-                )}
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="country">Country *</Label>
+                  <Input
+                    id="country"
+                    type="text"
+                    name="country"
+                    value={data.country}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  {errors.country && (
+                    <p className="text-sm text-destructive">{errors.country}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Address Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-600" />
-              Address Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
-                <Label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
-                  Street Address *
-                </Label>
-                <Input
-                  id="address"
-                  type="text"
-                  name="address"
-                  value={data.address}
+          <Card>
+            <CardHeader>
+              <CardTitle>Receipt Messages</CardTitle>
+              <CardDescription>
+                Configure messages that appear on customer receipts
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Return Policy */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="returnPolicy">Return Policy *</Label>
+                </div>
+                <Textarea
+                  id="returnPolicy"
+                  name="returnPolicy"
+                  value={data.returnPolicy}
                   onChange={handleInputChange}
+                  rows={2}
+                  placeholder="Enter your return policy message..."
                   required
                 />
-                {errors.address && (
-                  <p className="text-sm text-red-600">{errors.address}</p>
+                {errors.returnPolicy && (
+                  <p className="text-sm text-destructive">{errors.returnPolicy}</p>
                 )}
+                <p className="text-sm text-muted-foreground">
+                  This message will be displayed on receipts and return documentation.
+                </p>
               </div>
-             
-              <div className='md:col-span-2'>
-                <Label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">
-                  Country *
-                </Label>
-                <Input
-                  id="country"
-                  type="text"
-                  name="country"
-                  value={data.country}
+
+              <Separator />
+
+              {/* Thank You Message */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="thankYouMessage">Thank You Message *</Label>
+                </div>
+                <Textarea
+                  id="thankYouMessage"
+                  name="thankYouMessage"
+                  value={data.thankYouMessage}
                   onChange={handleInputChange}
+                  rows={2}
+                  placeholder="Enter your thank you message for receipts..."
                   required
                 />
-                {errors.country && (
-                  <p className="text-sm text-red-600">{errors.country}</p>
+                {errors.thankYouMessage && (
+                  <p className="text-sm text-destructive">{errors.thankYouMessage}</p>
                 )}
+                <p className="text-sm text-muted-foreground">
+                  This message will be displayed at the bottom of receipts.
+                </p>
               </div>
-            </div>
-          </div>
-
-          {/* Receipt Messages Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Receipt Messages</h2>
-            
-            {/* Return Policy */}
-            <div className="space-y-2 mb-6">
-              <Label htmlFor="returnPolicy" className="flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 text-blue-600" />
-                Return Policy *
-              </Label>
-              <Textarea
-                id="returnPolicy"
-                name="returnPolicy"
-                value={data.returnPolicy}
-                onChange={handleInputChange}
-                rows={2}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Enter your return policy message..."
-                required
-              />
-              {errors.returnPolicy && (
-                <p className="text-sm text-red-600">{errors.returnPolicy}</p>
-              )}
-              <p className="text-sm text-gray-500">
-                This message will be displayed on receipts and return documentation.
-              </p>
-            </div>
-
-            {/* Thank You Message */}
-            <div className="space-y-2">
-              <Label htmlFor="thankYouMessage" className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-blue-600" />
-                Thank You Message *
-              </Label>
-              <Textarea
-                id="thankYouMessage"
-                name="thankYouMessage"
-                value={data.thankYouMessage}
-                onChange={handleInputChange}
-                rows={2}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Enter your thank you message for receipts..."
-                required
-              />
-              {errors.thankYouMessage && (
-                <p className="text-sm text-red-600">{errors.thankYouMessage}</p>
-              )}
-              <p className="text-sm text-gray-500">
-                This message will be displayed at the bottom of receipts.
-              </p>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
          
           {/* Action Buttons */}
           <div className="flex justify-end gap-4">
-            <button
+            <Button
               type="button"
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              variant="outline"
+              onClick={() => window.history.back()}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={processing}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="gap-2"
             >
-              <Save className="w-4 h-4" />
+              <Save className="h-4 w-4" />
               {processing ? 'Saving...' : 'Save Changes'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -333,7 +373,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Dashboard({ companySettings }: { companySettings: CompanyInfo }) {
-  
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Settings" />

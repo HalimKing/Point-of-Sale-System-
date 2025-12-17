@@ -12,9 +12,23 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { BadgeDollarSignIcon, BookOpen, DollarSign, Folder, LayoutGrid, Settings, ShoppingCart, Users } from 'lucide-react';
 import AppLogo from './app-logo';
+
+// cashier sidebar items
+const cashierNavItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: '/cashier/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Sales',
+        href: '/cashier/sales',
+        icon: ShoppingCart,
+    },
+];
 
 const mainNavItems: NavItem[] = [
     {
@@ -25,61 +39,52 @@ const mainNavItems: NavItem[] = [
     // sales
     {
         title: 'Sales',
-        href: '/sales',
+        href: '/admin/sales',
         icon: ShoppingCart,
     },
     // products
     {
         title: 'Products',
-        href: '/products',
+        href: '/admin/products',
         icon: Folder,
     },
     // categories
     {
         title: 'Categories',
-        href: '/categories',
+        href: '/admin/categories',
         icon: Folder,
     },
     // sales reports
     {
         title: 'Sales Reports',
-        href: '/sales-reports',
+        href: '/admin/sale-reports',
         icon: DollarSign,
     },
     // expenses
     // suppliers
     {
         title: 'Suppliers',
-        href: '/suppliers',
+        href: '/admin/suppliers',
         icon: Users,
     },
     // users
     {
         title: 'Users',
-        href: '/users',
+        href: '/admin/users',
         icon: Users,
     },
     // settings
     {
         title: 'Settings',
-        href: '/settings/index',
+        href: '/admin/settings/index',
         icon: Settings,
     }
 ];
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+
 
 export function AppSidebar() {
+    const { auth } = usePage().props;
+    
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -96,7 +101,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={auth.user.role_id === 3 ? cashierNavItems : mainNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

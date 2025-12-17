@@ -83,7 +83,7 @@ class SettingsController extends Controller
     return redirect()->back()->with('success', 'Company settings updated successfully.');
         } else {
             CompanySetting::create($validatedData);
-            return redirect()->route('settings.index')->with('success', 'Company settings created successfully.');
+            return redirect()->route('admin.settings.index')->with('success', 'Company settings created successfully.');
         }
     }
 }

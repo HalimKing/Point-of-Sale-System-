@@ -278,7 +278,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
         const categoryIds = selectedCategories.map(category => category.id)
         
         // Send bulk delete request
-        const response = await axios.post('/bulk-delete/categories', {
+        const response = await axios.post('/admin/bulk-delete/categories', {
           ids: categoryIds
         });
 
@@ -313,7 +313,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
 
   const handleAddCategory = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    post('/categories', {
+    post('/admin/categories', {
       onSuccess: () => {
         setIsAddCategoryOpen(false)
         setData({ name: '', description: '' })
@@ -338,7 +338,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
     
     if (!editingCategory) return
     
-    put(`/categories/${editingCategory.id}`, {
+    put(`/admin/categories/${editingCategory.id}`, {
       onSuccess: () => {
         // Refetch categories from server to get updated data
         fetchCategories()
@@ -394,7 +394,7 @@ const CategoryIndexPage = ({categoriesData}: {categoriesData: Category[]}) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('/categories/fetch-categories');
+      const response = await axios.get('/admin/categories/fetch-categories');
       console.log('Raw response:', response);
       
       // The data should be directly in response.data

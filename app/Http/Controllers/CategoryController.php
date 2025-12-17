@@ -45,9 +45,9 @@ class CategoryController extends Controller
             $category->name = $request->name;
             $category->description = $request->description;
             $category->save();
-            return redirect()->route('categories.index')->with('success', 'Category created successfully.');
+            return redirect()->route('admin.categories.index')->with('success', 'Category created successfully.');
         }catch(\Exception $e){
-            return redirect()->route('categories.index')->with('error', 'Category creation failed:' . $e->getMessage());
+            return redirect()->route('admin.categories.index')->with('error', 'Category creation failed:' . $e->getMessage());
         }
     }
 
@@ -81,7 +81,7 @@ class CategoryController extends Controller
         $category->name = $request->name;
         $category->description = $request->description;
         $category->save();
-        return redirect()->route('categories.index')->with([
+        return redirect()->route('admin.categories.index')->with([
             'success' => 'Category updated successfully.',
             'data' => Category::all(),
         ]);

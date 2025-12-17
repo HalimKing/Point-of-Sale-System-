@@ -9,7 +9,10 @@ import {
   ArrowDown, 
   RefreshCw, 
   Download,
-  Loader2
+  Loader2,
+  User,
+  Receipt,
+  Clock
 } from 'lucide-react';
 import axios from 'axios';
 import {
@@ -39,6 +42,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
+import AppLayout from '@/layouts/app-layout';
+// import { dashboard } from '@/routes';
+import { type BreadcrumbItem } from '@/types';
+import { Head } from '@inertiajs/react';
 
 interface MetricCardProps {
   title: string;
@@ -74,21 +81,34 @@ interface Transaction {
   payment: string;
 }
 
-interface DashboardData {
-  metrics: Array<{
+interface CashierDashboardData {
+  cashierInfo: {
+    name: string;
+    id: string;
+    shiftStart: string;
+    shiftDuration: string;
+    totalShifts: number;
+    rating: number;
+  };
+  shiftMetrics: Array<{
     title: string;
     value: string;
     change: number;
   }>;
-  salesTrend: SalesData[];
-  categoryData: CategoryData[];
-  topProducts: TopProduct[];
-  recentTransactions: Transaction[];
-  last30DaysSales: SalesData[];
-  financialYearSales: Array<{
-    month: string;
+  shiftSalesTrend: SalesData[];
+  shiftCategoryData: CategoryData[];
+  shiftTopProducts: TopProduct[];
+  recentShiftTransactions: Transaction[];
+  dailyPerformance: Array<{
+    day: string;
     sales: number;
     target: number;
+  }>;
+  paymentMethods: Array<{
+    method: string;
+    count: number;
+    amount: number;
+    percentage: number;
   }>;
 }
 
@@ -119,7 +139,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, icon }) =
             )}
             {Math.abs(change)}%
           </Badge>
-          <span className="text-xs text-muted-foreground ml-2">from previous period</span>
+          <span className="text-xs text-muted-foreground ml-2">from previous shift</span>
         </div>
       </CardContent>
     </Card>
@@ -138,9 +158,9 @@ const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-const POSDashboard: React.FC = () => {
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d');
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+const CashierDashboard: React.FC = () => {
+  const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
+  const [dashboardData, setDashboardData] = useState<CashierDashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -151,13 +171,17 @@ const POSDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await axios.get(`/admin/api/dashboard/data?timeRange=${range}`);
+      const response = await axios.get(`/cashier/api/cashier/dashboard?timeRange=${range}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       
       if (!response || response.status !== 200) {
         throw new Error('Failed to fetch dashboard data');
       }
       
-      const data = response.data as DashboardData;
+      const data = response.data as CashierDashboardData;
       setDashboardData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -215,7 +239,6 @@ const POSDashboard: React.FC = () => {
         return;
       }
 
-      // Convert data to CSV format
       const headers = columns.join(',');
       const rows = data.map(item => 
         columns.map(col => {
@@ -236,42 +259,32 @@ const POSDashboard: React.FC = () => {
     }
   };
 
-  // Download all charts as CSV
-  const downloadAllChartsAsCSV = () => {
-    const charts = [
-      { name: 'sales-trend', displayName: 'Sales Trend', data: dashboardData?.salesTrend },
-      { name: 'category-distribution', displayName: 'Category Distribution', data: dashboardData?.categoryData },
-      { name: 'last-30-days-sales', displayName: 'Last 30 Days Sales', data: dashboardData?.last30DaysSales },
-      { name: 'financial-year-sales', displayName: 'Financial Year Sales', data: dashboardData?.financialYearSales },
-    ];
-
-    charts.forEach((chart, index) => {
-      if (chart.data && chart.data.length > 0) {
-        setTimeout(() => {
-          downloadChartDataAsCSV(chart.data, chart.name, chart.displayName);
-        }, index * 500);
-      }
-    });
-  };
-
-  // Sample data as fallback - remove this in production
-  const sampleData: DashboardData = {
-    metrics: [
+  // Sample data as fallback
+  const sampleData: CashierDashboardData = {
+    cashierInfo: {
+      name: "John Doe",
+      id: "CSH-001",
+      shiftStart: "08:00 AM",
+      shiftDuration: "8h 30m",
+      totalShifts: 156,
+      rating: 4.8
+    },
+    shiftMetrics: [
       { title: "Today's Sales", value: "GHS 0.00", change: 0 },
-      { title: "Yesterday's Sales", value: "GHS 0.00", change: 0 },
-      { title: "Total Revenue", value: "GHS 0.00", change: 0 },
-      { title: "Total Products", value: "0", change: 0 },
       { title: "Transactions", value: "0", change: 0 },
       { title: "Avg Transaction", value: "GHS 0.00", change: 0 },
-      { title: "Customers", value: "0", change: 0 },
-      { title: "Users", value: "0", change: 0 },
+      { title: "Items Sold", value: "0", change: 0 },
+      { title: "Refunds", value: "0", change: 0 },
+      { title: "Void Items", value: "0", change: 0 },
+      { title: "Customer Rating", value: "4.8", change: 0 },
+      { title: "Shift Duration", value: "8h 30m", change: 0 },
     ],
-    salesTrend: [],
-    categoryData: [],
-    topProducts: [],
-    recentTransactions: [],
-    last30DaysSales: [],
-    financialYearSales: []
+    shiftSalesTrend: [],
+    shiftCategoryData: [],
+    shiftTopProducts: [],
+    recentShiftTransactions: [],
+    dailyPerformance: [],
+    paymentMethods: []
   };
 
   const data = dashboardData || sampleData;
@@ -285,14 +298,6 @@ const POSDashboard: React.FC = () => {
             <Skeleton className="h-10 w-32" />
           </div>
           
-          <Tabs defaultValue="7d" className="w-[400px]">
-            <TabsList>
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-24" />
-            </TabsList>
-          </Tabs>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <Card key={i}>
@@ -318,8 +323,21 @@ const POSDashboard: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">POS Analytics Dashboard</h1>
-            <p className="text-muted-foreground">Real-time insights into your store performance</p>
+            <h1 className="text-3xl font-bold tracking-tight">Cashier Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back, {data.cashierInfo.name}!</p>
+            <div className="flex items-center gap-4 pt-2">
+              <Badge variant="outline" className="flex items-center gap-1">
+                <User className="h-3 w-3" />
+                ID: {data.cashierInfo.id}
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Shift Started: {data.cashierInfo.shiftStart}
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-1">
+                Total Shifts: {data.cashierInfo.totalShifts}
+              </Badge>
+            </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
@@ -330,14 +348,14 @@ const POSDashboard: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={downloadAllChartsAsCSV}>
-                  Download All CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => downloadChartDataAsCSV(data.salesTrend, 'sales-trend', 'Sales Trend')}>
+                <DropdownMenuItem onClick={() => downloadChartDataAsCSV(data.shiftSalesTrend, 'shift-sales-trend', 'Shift Sales Trend')}>
                   Sales Trend CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => downloadChartDataAsCSV(data.categoryData, 'category-distribution', 'Category Distribution')}>
+                <DropdownMenuItem onClick={() => downloadChartDataAsCSV(data.shiftCategoryData, 'category-distribution', 'Category Distribution')}>
                   Category Distribution CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadTableAsCSV(data.recentShiftTransactions, 'recent-transactions', ['id', 'time', 'items', 'amount', 'payment'], 'Recent Transactions')}>
+                  Recent Transactions CSV
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -360,63 +378,117 @@ const POSDashboard: React.FC = () => {
         )}
 
         {/* Time Range Selector */}
-        <Tabs value={timeRange} onValueChange={(value) => setTimeRange(value as '7d' | '30d' | '90d')}>
+        <Tabs value={timeRange} onValueChange={(value) => setTimeRange(value as 'today' | 'week' | 'month')}>
           <TabsList>
-            <TabsTrigger value="7d">Last 7 Days</TabsTrigger>
-            <TabsTrigger value="30d">Last 30 Days</TabsTrigger>
-            <TabsTrigger value="90d">Last 90 Days</TabsTrigger>
+            <TabsTrigger value="today">Today's Shift</TabsTrigger>
+            <TabsTrigger value="week">This Week</TabsTrigger>
+            <TabsTrigger value="month">This Month</TabsTrigger>
           </TabsList>
         </Tabs>
+
+        {/* Cashier Info Card */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Cashier ID:</span>
+                  <span className="font-bold">{data.cashierInfo.id}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Current Shift:</span>
+                  <span>{data.cashierInfo.shiftDuration}</span>
+                </div>
+                <div className="pt-2">
+                  <span className="font-medium">Rating: </span>
+                  <div className="inline-flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={`text-xl ${i < Math.floor(data.cashierInfo.rating) ? 'text-yellow-500' : 'text-gray-300'}`}>
+                        ★
+                      </span>
+                    ))}
+                    <span className="ml-2 font-bold">{data.cashierInfo.rating}/5.0</span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">Shift Performance</div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Sales Target</span>
+                    <span className="font-medium">GHS 5,000</span>
+                  </div>
+                  <Progress value={65} className="h-2" />
+                  <div className="text-xs text-muted-foreground">65% completed</div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">Quick Actions</div>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline">
+                    <Receipt className="mr-2 h-4 w-4" />
+                    New Sale
+                  </Button>
+                  <Button size="sm" variant="outline">
+                    View All Transactions
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="Today's Sales"
-            value={data.metrics[0]?.value || "GHS 0.00"}
-            change={data.metrics[0]?.change || 0}
+            value={data.shiftMetrics[0]?.value || "GHS 0.00"}
+            change={data.shiftMetrics[0]?.change || 0}
             icon={<DollarSign className="h-4 w-4" />}
-          />
-          <MetricCard
-            title="Yesterday's Sales"
-            value={data.metrics[1]?.value || "GHS 0.00"}
-            change={data.metrics[1]?.change || 0}
-            icon={<DollarSign className="h-4 w-4" />}
-          />
-          <MetricCard
-            title="Total Revenue"
-            value={data.metrics[2]?.value || "GHS 0.00"}
-            change={data.metrics[2]?.change || 0}
-            icon={<DollarSign className="h-4 w-4" />}
-          />
-          <MetricCard
-            title="Total Products"
-            value={data.metrics[3]?.value || "0"}
-            change={data.metrics[3]?.change || 0}
-            icon={<ShoppingCart className="h-4 w-4" />}
           />
           <MetricCard
             title="Transactions"
-            value={data.metrics[4]?.value || "0"}
-            change={data.metrics[4]?.change || 0}
+            value={data.shiftMetrics[1]?.value || "0"}
+            change={data.shiftMetrics[1]?.change || 0}
             icon={<ShoppingCart className="h-4 w-4" />}
           />
           <MetricCard
             title="Avg Transaction"
-            value={data.metrics[5]?.value || "GHS 0.00"}
-            change={data.metrics[5]?.change || 0}
+            value={data.shiftMetrics[2]?.value || "GHS 0.00"}
+            change={data.shiftMetrics[2]?.change || 0}
             icon={<TrendingUp className="h-4 w-4" />}
           />
           <MetricCard
-            title="Customers"
-            value={data.metrics[6]?.value || "0"}
-            change={data.metrics[6]?.change || 0}
+            title="Items Sold"
+            value={data.shiftMetrics[3]?.value || "0"}
+            change={data.shiftMetrics[3]?.change || 0}
+            icon={<ShoppingCart className="h-4 w-4" />}
+          />
+          <MetricCard
+            title="Refunds"
+            value={data.shiftMetrics[4]?.value || "0"}
+            change={data.shiftMetrics[4]?.change || 0}
+            icon={<ArrowDown className="h-4 w-4" />}
+          />
+          <MetricCard
+            title="Void Items"
+            value={data.shiftMetrics[5]?.value || "0"}
+            change={data.shiftMetrics[5]?.change || 0}
+            icon={<Receipt className="h-4 w-4" />}
+          />
+          <MetricCard
+            title="Customer Rating"
+            value={data.shiftMetrics[6]?.value || "0.0"}
+            change={data.shiftMetrics[6]?.change || 0}
             icon={<Users className="h-4 w-4" />}
           />
           <MetricCard
-            title="Users"
-            value={data.metrics[7]?.value || "0"}
-            change={data.metrics[7]?.change || 0}
-            icon={<Users className="h-4 w-4" />}
+            title="Shift Duration"
+            value={data.shiftMetrics[7]?.value || "0h 0m"}
+            change={data.shiftMetrics[7]?.change || 0}
+            icon={<Clock className="h-4 w-4" />}
           />
         </div>
 
@@ -426,14 +498,14 @@ const POSDashboard: React.FC = () => {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Sales Trend</CardTitle>
+                <CardTitle>Shift Sales Trend</CardTitle>
                 <Button
-                  onClick={() => downloadChartDataAsCSV(data.salesTrend, 'sales-trend', 'Sales Trend')}
-                  disabled={downloading !== null || data.salesTrend.length === 0}
+                  onClick={() => downloadChartDataAsCSV(data.shiftSalesTrend, 'shift-sales-trend', 'Shift Sales Trend')}
+                  disabled={downloading !== null || data.shiftSalesTrend.length === 0}
                   variant="ghost"
                   size="sm"
                 >
-                  {downloading === 'Sales Trend-csv' ? (
+                  {downloading === 'Shift Sales Trend-csv' ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Download className="h-4 w-4" />
@@ -443,8 +515,8 @@ const POSDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                {data.salesTrend.length > 0 ? (
-                  <LineChart data={data.salesTrend}>
+                {data.shiftSalesTrend.length > 0 ? (
+                  <LineChart data={data.shiftSalesTrend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="date" stroke="#6B7280" />
                     <YAxis stroke="#6B7280" />
@@ -465,7 +537,7 @@ const POSDashboard: React.FC = () => {
                   </LineChart>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground">No sales data available</p>
+                    <p className="text-muted-foreground">No sales data available for this shift</p>
                   </div>
                 )}
               </ResponsiveContainer>
@@ -478,8 +550,8 @@ const POSDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <CardTitle>Sales by Category</CardTitle>
                 <Button
-                  onClick={() => downloadChartDataAsCSV(data.categoryData, 'category-distribution', 'Category Distribution')}
-                  disabled={downloading !== null || data.categoryData.length === 0}
+                  onClick={() => downloadChartDataAsCSV(data.shiftCategoryData, 'category-distribution', 'Category Distribution')}
+                  disabled={downloading !== null || data.shiftCategoryData.length === 0}
                   variant="ghost"
                   size="sm"
                 >
@@ -493,10 +565,10 @@ const POSDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                {data.categoryData.length > 0 ? (
+                {data.shiftCategoryData.length > 0 ? (
                   <PieChart>
                     <Pie
-                      data={data.categoryData}
+                      data={data.shiftCategoryData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -505,7 +577,7 @@ const POSDashboard: React.FC = () => {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {data.categoryData.map((entry, index) => (
+                      {data.shiftCategoryData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -521,20 +593,20 @@ const POSDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Charts Row 2 - New Charts */}
-        <div className="grid grid-cols-1 gap-6">
-          {/* Sales Last 30 Days */}
+        {/* Charts Row 2 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Daily Performance */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Sales Last 30 Days</CardTitle>
+                <CardTitle>Daily Performance</CardTitle>
                 <Button
-                  onClick={() => downloadChartDataAsCSV(data.last30DaysSales, 'last-30-days-sales', 'Last 30 Days Sales')}
-                  disabled={downloading !== null || data.last30DaysSales.length === 0}
+                  onClick={() => downloadChartDataAsCSV(data.dailyPerformance, 'daily-performance', 'Daily Performance')}
+                  disabled={downloading !== null || data.dailyPerformance.length === 0}
                   variant="ghost"
                   size="sm"
                 >
-                  {downloading === 'Last 30 Days Sales-csv' ? (
+                  {downloading === 'Daily Performance-csv' ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Download className="h-4 w-4" />
@@ -544,10 +616,10 @@ const POSDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                {data.last30DaysSales.length > 0 ? (
-                  <BarChart data={data.last30DaysSales}>
+                {data.dailyPerformance.length > 0 ? (
+                  <BarChart data={data.dailyPerformance}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="date" stroke="#6B7280" />
+                    <XAxis dataKey="day" stroke="#6B7280" />
                     <YAxis stroke="#6B7280" />
                     <Tooltip 
                       formatter={(value) => [`GHS ${Number(value).toLocaleString()}`, 'Sales']}
@@ -557,80 +629,58 @@ const POSDashboard: React.FC = () => {
                     <Bar 
                       dataKey="sales" 
                       fill="#10B981" 
-                      name="Sales (GHS)"
+                      name="Actual Sales"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar 
+                      dataKey="target" 
+                      fill="#F59E0B" 
+                      name="Target Sales"
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground">No 30-day sales data available</p>
+                    <p className="text-muted-foreground">No daily performance data available</p>
                   </div>
                 )}
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* Current Financial Year Sales */}
+          {/* Payment Methods */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Current Financial Year Sales</CardTitle>
-                <Button
-                  onClick={() => downloadChartDataAsCSV(data.financialYearSales, 'financial-year-sales', 'Financial Year Sales')}
-                  disabled={downloading !== null || data.financialYearSales.length === 0}
-                  variant="ghost"
-                  size="sm"
-                >
-                  {downloading === 'Financial Year Sales-csv' ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="h-4 w-4" />
-                  )}
-                </Button>
+                <CardTitle>Payment Methods</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                {data.financialYearSales.length > 0 ? (
-                  <LineChart data={data.financialYearSales}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" stroke="#6B7280" />
-                    <YAxis stroke="#6B7280" />
-                    <Tooltip 
-                      formatter={(value) => [`GHS ${Number(value).toLocaleString()}`, 'Sales']}
-                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                    />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sales" 
-                      stroke="#8B5CF6" 
-                      strokeWidth={2}
-                      dot={{ fill: '#8B5CF6', r: 4 }}
-                      activeDot={{ r: 6 }}
-                      name="Actual Sales"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="target" 
-                      stroke="#F59E0B" 
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={{ fill: '#F59E0B', r: 4 }}
-                      name="Target Sales"
-                    />
-                  </LineChart>
+              <div className="space-y-4">
+                {data.paymentMethods.length > 0 ? (
+                  data.paymentMethods.map((payment, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="font-medium">{payment.method}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {payment.count} transactions • GHS {payment.amount.toLocaleString()}
+                        </span>
+                      </div>
+                      <Progress value={payment.percentage} className="h-2" />
+                      <div className="text-xs text-muted-foreground">{payment.percentage.toFixed(1)}% of total</div>
+                    </div>
+                  ))
                 ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground">No financial year data available</p>
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No payment data available</p>
                   </div>
                 )}
-              </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Charts Row 3 */}
+        {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Products */}
           <Card>
@@ -638,8 +688,8 @@ const POSDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <CardTitle>Top Selling Products</CardTitle>
                 <Button
-                  onClick={() => downloadTableAsCSV(data.topProducts, 'top-products', ['name', 'quantity', 'revenue'], 'Top Products')}
-                  disabled={downloading !== null || data.topProducts.length === 0}
+                  onClick={() => downloadTableAsCSV(data.shiftTopProducts, 'top-products', ['name', 'quantity', 'revenue'], 'Top Products')}
+                  disabled={downloading !== null || data.shiftTopProducts.length === 0}
                   variant="ghost"
                   size="sm"
                 >
@@ -653,8 +703,8 @@ const POSDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {data.topProducts.length > 0 ? (
-                  data.topProducts.map((product, index) => (
+                {data.shiftTopProducts.length > 0 ? (
+                  data.shiftTopProducts.map((product, index) => (
                     <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="space-y-1">
                         <p className="font-medium leading-none">{product.name}</p>
@@ -680,8 +730,8 @@ const POSDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <CardTitle>Recent Transactions</CardTitle>
                 <Button
-                  onClick={() => downloadTableAsCSV(data.recentTransactions, 'recent-transactions', ['id', 'time', 'items', 'amount', 'payment'], 'Recent Transactions')}
-                  disabled={downloading !== null || data.recentTransactions.length === 0}
+                  onClick={() => downloadTableAsCSV(data.recentShiftTransactions, 'recent-transactions', ['id', 'time', 'items', 'amount', 'payment'], 'Recent Transactions')}
+                  disabled={downloading !== null || data.recentShiftTransactions.length === 0}
                   variant="ghost"
                   size="sm"
                 >
@@ -698,15 +748,15 @@ const POSDashboard: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Transaction ID</TableHead>
-                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Time</TableHead>
                     <TableHead>Items</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Payment</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.recentTransactions.length > 0 ? (
-                    data.recentTransactions.map((transaction, index) => (
+                  {data.recentShiftTransactions.length > 0 ? (
+                    data.recentShiftTransactions.map((transaction, index) => (
                       <TableRow key={index}>
                         <TableCell className="font-medium">{transaction.id}</TableCell>
                         <TableCell>{transaction.time}</TableCell>
@@ -734,4 +784,19 @@ const POSDashboard: React.FC = () => {
   );
 };
 
-export default POSDashboard;
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'CashierDashboard',
+        href: '/dashboard',
+    },
+];
+
+export default function CashierDashboard2() {
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Dashboard" />
+              
+          <CashierDashboard />
+        </AppLayout>
+    );
+}

@@ -342,7 +342,7 @@ const UserActions = ({ user, onUserUpdate }: UserActionsProps) => {
 
   const allRoles = async () => {
     try {
-      const response =  await axios.get('api/roles/all-roles');
+      const response =  await axios.get('/admin/api/roles/all-roles');
       if (response.status = 200) {
         setRoles(response.data)
       }
@@ -405,7 +405,7 @@ const UserActions = ({ user, onUserUpdate }: UserActionsProps) => {
     try {
       const newStatus = user.status === 'active' ? 'inactive' : 'active'
       // Use PUT request to update status
-      const response = await axios.get(`api/users/${user.id}/status`)
+      const response = await axios.get(`/admin/api/users/${user.id}/status`)
       if (response.status === 200) {
         toast.success(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`)
         // Call the parent's update function to refresh users without page reload
@@ -434,7 +434,7 @@ const UserActions = ({ user, onUserUpdate }: UserActionsProps) => {
         setIsDeleteLoading(true)
         try {
           // Use DELETE request to delete user
-          const response = await axios.delete(`users/${user.id}`)
+          const response = await axios.delete(`/admin/users/${user.id}`)
           if (response.status === 200) {
             toast.success('User deleted successfully!')
             // Call the parent's update function to refresh users without page reload
@@ -776,7 +776,7 @@ const UserIndexPage = ({usersData}: UserIndexPageProps) => {
 
   const allRoles = async () => {
     try {
-      const response =  await axios.get('api/roles/all-roles');
+      const response =  await axios.get('/admin/api/roles/all-roles');
       if (response.status = 200) {
         setRoles(response.data)
       }
@@ -849,7 +849,7 @@ const UserIndexPage = ({usersData}: UserIndexPageProps) => {
   const allUsers = async () => {
     setIsLoading(true)
     try {
-      const response = await axios.get('api/sales/all-users');
+      const response = await axios.get('/admin/api/sales/all-users');
       if (response.status === 200) {
         setUsers(response.data)
       }
@@ -863,7 +863,7 @@ const UserIndexPage = ({usersData}: UserIndexPageProps) => {
 
   const handleAddUser = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    post('users', {
+    post('/admin/users', {
       onSuccess: () => {
         toast.success('User added successfully!');
         setIsAddUserOpen(false)

@@ -488,7 +488,7 @@ const SalesReportPage = ({topProductsData, salesByCategoryData, company}: SalesR
             console.log(transaction);
             
             // Fetch sale items from backend
-            const response = await axios.get(`/api/sales/transactions/${transaction.saleId}/sale-items`)
+            const response = await axios.get(`/admin/api/sales/transactions/${transaction.saleId}/sale-items`)
             const saleItems: SaleItem[] = response.data;
             
             // Use company settings from props
@@ -918,7 +918,7 @@ const SalesReportPage = ({topProductsData, salesByCategoryData, company}: SalesR
 
   // Sales details
   const salesDetails = async () => {
-    const response = await axios.get('api/sales/sales-details')
+    const response = await axios.get('/admin/api/sales/sales-details')
     setSales(response.data);
   }
 
@@ -929,7 +929,7 @@ const SalesReportPage = ({topProductsData, salesByCategoryData, company}: SalesR
 
   // Transactions
   const transactions = async () => {
-    const response = await axios.get('api/sales/transactions')
+    const response = await axios.get('/admin/api/sales/transactions')
     setTransactionsData(response.data);
   }
 

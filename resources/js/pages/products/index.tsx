@@ -567,7 +567,7 @@ const ProducIndexPage = ({ productData }: { productData: Product[] }) => {
 
     if (result.isConfirmed) {
       try {
-        const response = await axios.delete(`/products/${product.id}`);
+        const response = await axios.delete(`/admin/products/${product.id}`);
         
         if (response.status === 200) {
           // Remove product from local state
@@ -654,7 +654,7 @@ const handleCSVUpload = async (event: React.FormEvent<HTMLFormElement>) => {
     const formData = new FormData();
     formData.append('csv_file', uploadFile);
 
-    const response = await axios.post('/imports/products/upload', formData, {
+    const response = await axios.post('/admin/imports/products/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -756,7 +756,7 @@ const handleCSVUpload = async (event: React.FormEvent<HTMLFormElement>) => {
       const formData = new FormData();
       formData.append('excel_file', uploadFile);
 
-      const response = await axios.post('/imports/products/upload', formData, {
+      const response = await axios.post('/admin/imports/products/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -896,7 +896,7 @@ filter.value.length > 0 : filter.value !== "")
   const handleAddProduct = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     
-    post('/products', {
+    post('/admin/products', {
       forceFormData: true, // Crucial for file uploads
       onSuccess: () => {
         setIsAddProductOpen(false);
@@ -917,7 +917,7 @@ filter.value.length > 0 : filter.value !== "")
     if (!selectedProduct) return
 
     // Since we are sending a PUT request with file, we must use `post` with `_method: 'PUT'` and `forceFormData: true`
-    put(`/products/${selectedProduct.id}`, {
+    put(`/admin/products/${selectedProduct.id}`, {
       forceFormData: true, // Crucial for file uploads and PUT/PATCH with Inertia
       onSuccess: () => {
         setIsEditProductOpen(false);
@@ -934,7 +934,7 @@ filter.value.length > 0 : filter.value !== "")
   // fetc products
    const fetchAllProducts = async () => {
     try {
-      const response = await axios.get('/products/data/fetch/all-products');
+      const response = await axios.get('/admin/products/data/fetch/all-products');
       const allProducts = response.data.map((product: any) => ({
          ...product,
          // Ensure correct type for the Combobox IDs if your backend returns them with different keys
@@ -972,7 +972,7 @@ filter.value.length > 0 : filter.value !== "")
 
   const fetchAllCategories = async () => {
     try{
-      const response = await axios.get('/categories/data/fetch/all-categories');
+      const response = await axios.get('/admin/categories/data/fetch/all-categories');
       const allCategories = response.data;  
 
       if(Array.isArray(allCategories)) {
@@ -987,7 +987,7 @@ filter.value.length > 0 : filter.value !== "")
   }
   const fetchAllSuppliers = async () => {
     try{
-      const response = await axios.get('/suppliers/data/fetch/all-suppliers');
+      const response = await axios.get('/admin/suppliers/data/fetch/all-suppliers');
       const allSuppliers = response.data;  
       // console.log('Raw data', response);
       
